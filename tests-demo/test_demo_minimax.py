@@ -80,7 +80,7 @@ class BankSupportAgentAdapter(scenario.AgentAdapter):
 
     async def call(self, input: scenario.AgentInput) -> scenario.AgentReturnTypes:
         message_content = input.last_new_user_message_str()
-        response = support_agent.run(message_content)
+        response = support_agent.run(message_content, session_id=input.thread_id)
 
         # Convert Agno messages to OpenAI format for Scenario
         openai_messages = []

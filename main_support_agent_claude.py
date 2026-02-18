@@ -196,6 +196,7 @@ support_agent = Agent(
     description=SYSTEM_PROMPT,
     add_history_to_context=True,
     num_history_runs=100,
+    cache_session=True,
 )
 
 
