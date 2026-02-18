@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "agno>=1.6.4",
+    "anthropic>=0.81.0",
     "langwatch>=0.2.4",
     "langwatch-scenario>=0.7.11",
     "openinference-instrumentation-agno>=0.1.6",
