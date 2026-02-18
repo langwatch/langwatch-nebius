@@ -31,6 +31,47 @@ Each model is evaluated against the same set of realistic banking scenarios:
 7. **Lost Card Replacement** - Lost debit card requiring immediate security measures
 8. **Overdraft Fee Dispute** - Customer disputes a fee, agent must show empathy and offer resolution
 
+## Results
+
+We ran each model through all 8 scenarios, 5 rounds each (40 runs per model). Here's how they compared:
+
+### Cost, Tokens & Latency per Model
+
+| Model | Invokes | Avg Cost/Invoke | Total Cost | Avg Prompt Tok | Avg Compl Tok | Avg Duration |
+|-------|---------|-----------------|------------|----------------|---------------|--------------|
+| MiniMax-M2.1 | 175 | $0.001022 | $0.18 | 1,248 | 721 | 9,480 ms |
+| Claude Opus 4.6 | 157 | $0.019214 | $3.02 | 462 | 676 | 11,953 ms |
+| DeepSeek-V3.2 | 206 | $0.000531 | $0.11 | 1,296 | 546 | 14,895 ms |
+| GPT-OSS-120B | 162 | $0.000164 | $0.03 | 1,134 | 630 | 3,692 ms |
+| GLM-4.7-FP8 | 174 | $0.002034 | $0.35 | 1,260 | 1,020 | 22,369 ms |
+
+### Scenario Pass/Fail (5 rounds x 8 scenarios)
+
+| Model | Passed | Failed | Total | Pass Rate |
+|-------|--------|--------|-------|-----------|
+| Claude | 26 | 11 | 37 | 70.3% |
+| OpenAI | 26 | 13 | 39 | 66.7% |
+| DeepSeek | 21 | 18 | 39 | 53.8% |
+| GLM | 19 | 20 | 39 | 48.7% |
+| MiniMax | 15 | 25 | 40 | 37.5% |
+
+### Key takeaways
+
+- **Claude** has the highest pass rate (70.3%) but is by far the most expensive (~$0.019/invoke, 36x more than GPT-OSS)
+- **GPT-OSS-120B** is the fastest (3.7s avg) and cheapest ($0.0002/invoke) but mid-tier quality (66.7%)
+- **DeepSeek** is very cheap ($0.0005/invoke) but slowest-ish and moderate quality
+- **GLM** is the slowest (22s avg) and generates the most tokens (1,020 avg completion)
+- **MiniMax** has the lowest pass rate (37.5%) despite reasonable cost and speed
+
+### Why do invoke counts differ?
+
+The models behave differently during conversations, which changes how many LLM calls they need:
+
+1. **Tool calls create extra invokes** — When a model decides to call a tool (e.g. `explore_customer_account`), it requires another LLM invoke after the tool result to generate the next response. Some models are more tool-happy than others.
+2. **DeepSeek (206) is the most tool-heavy** — It frequently called tools multiple times per turn (e.g., calling `explore_customer_account` 2-3 times to "dig deeper"), each one adding an invoke.
+3. **Claude (157) is the most efficient** — It tends to handle things in fewer LLM round-trips, making fewer redundant tool calls.
+4. **Context loss causes re-asks** — Several models (especially MiniMax and GLM) would "forget" the customer ID mid-conversation and re-ask for it, triggering additional back-and-forth LLM calls that other models avoided.
+
 ## Setup
 
 ### 1. Install dependencies
